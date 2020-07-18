@@ -1,4 +1,5 @@
 from picamera import PiCamera
+import asyncio
 
 class RCamera:
     def __init__(self):

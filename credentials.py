@@ -1,15 +1,17 @@
 import json
+from pathlib import Path
 
 class Credentials:
     def __init__(self):
-        self.credsFile = './creds.json'
+        self.credsFile = 'creds.json'
         self.connection_string = ""
         self.device_id = ""
         self.read_credentials()
 
     def read_credentials(self):
+        filepath = Path(self.credsFile)
         try:
-            with open(self.credsFile) as cred_data:
+            with open(filepath) as cred_data:
                 credentials = json.load(cred_data)
                 self.connection_string = credentials['connection_string']
                 self.device_id = credentials['device_id']
