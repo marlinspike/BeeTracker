@@ -11,8 +11,8 @@ Use the requirements.txt file to install required libraries, using the command: 
 - Raspberry Pi Camera
 - Some knowledge of how to use/configure a Raspberry Pi
 
-### Coming Soon -- Hardware wiring
-Coming soon...
+### Hardware wiring
+![alt text](https://raw.githubusercontent.com/marlinspike/beetracker/master/img/Raspberry_Pi_board_wiring.jpg)
 
 ### Configuring the Credentials file (creds.json)
 This app needs a **creds.json** file to store certain required credential and status info. It's not contained in the repo for obvious reasons, but here's the structure you'll need:
