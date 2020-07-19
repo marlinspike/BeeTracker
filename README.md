@@ -11,6 +11,11 @@ Use the requirements.txt file to install required libraries, using the command: 
 - Raspberry Pi Camera
 - Some knowledge of how to use/configure a Raspberry Pi
 
+### Azure Resources Required
+- Azure IoT Hub: Your device will need to be enrolled, and it's connection string updated in the **creds.json** file discussed below
+- Azure Storage: Optionally used to archive telemetry data from the device
+- Azure Stream Analytics: Optionally used for telemetry analysis 
+
 ### Hardware wiring
 The following wiring is required:
 - LED light at GPIO 18
