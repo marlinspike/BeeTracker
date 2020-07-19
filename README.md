@@ -12,6 +12,9 @@ Use the requirements.txt file to install required libraries, using the command: 
 - Some knowledge of how to use/configure a Raspberry Pi
 
 ### Hardware wiring
+The following wiring is required:
+- LED light at GPIO 18
+- Motion Sensor at GPIO 17
 ![alt text](https://raw.githubusercontent.com/marlinspike/beetracker/master/img/Raspberry_Pi_board_wiring.jpg)
 
 ### Configuring the Credentials file (creds.json)
