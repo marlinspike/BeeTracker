@@ -1,0 +1,16 @@
+azure-iot-device==2.1.4
+azure-iothub-device-client==1.4.6
+pianohat==0.1.0
+picamera==1.13
+piglow==1.2.5
+pigpio==1.44
+requests==2.21.0
+requests-oauthlib==1.0.0
+requests-unixsocket==0.2.0
+responses==0.9.0
+RPi.GPIO==0.7.0
+RTIMULib==7.2.1
+ssh-import-id==5.7
+urllib3==1.24.1
+azure-eventhub
+azure.storage.blob
