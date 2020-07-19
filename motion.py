@@ -8,6 +8,7 @@ import asyncio
 from azure.iot.device.aio import IoTHubDeviceClient
 from datetime import datetime
 from utils import CredentialInfo
+from message_payload import MessagePayload
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -17,9 +18,10 @@ credentials: Credentials = Credentials()
 device_client: IoTHubDeviceClient = IoTHubDeviceClient.create_from_connection_string(
     credentials.get_credentail_info(CredentialInfo.connection_string))
 
-async def send_iot_message(message):
-    print(f"Sending message to IoT Hub: {message}")
-    await device_client.send_message(message)
+async def send_iot_message(message=""):
+    message = MessagePayload.from_credentials(credentials)
+    print(f"Sending message to IoT Hub: {message.get_message()}")
+    await device_client.send_message(message.get_message())
 
 def movement_detected():
     print("Movement Detected!")
@@ -27,7 +29,7 @@ def movement_detected():
     red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
     camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id))
-    asyncio.run(send_iot_message(f"{now} - {credentials} - Movement Detected!"))
+    asyncio.run(send_iot_message())
 
 #No-movement detected method
 def no_movement_detected():
