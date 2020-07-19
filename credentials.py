@@ -29,7 +29,7 @@ class Credentials:
             print(f"There was an error reading credentials from: {self.credsFile}")
 
     def __str__(self) -> str:
-        return f"Latigude: {self.latitude}, Longitude: {self.longitude}, Owner_Email: {self.owner_email}, Device_ID: {self.device_id}"
+        return f"Device_ID: {self.device_id}, Latigude: {self.latitude}, Longitude: {self.longitude}, Owner_Email: {self.owner_email}"
 
     #Get the specified credential info, using the Enum specified from the credentials.CredentialInfo class
     def get_credentail_info(self, credential_info:CredentialInfo) -> str:

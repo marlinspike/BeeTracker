@@ -18,7 +18,7 @@ device_client: IoTHubDeviceClient = IoTHubDeviceClient.create_from_connection_st
     credentials.get_credentail_info(CredentialInfo.connection_string))
 
 async def send_iot_message(message):
-    print("Sending message to IoT Hub...")
+    print(f"Sending message to IoT Hub: {message}")
     await device_client.send_message(message)
 
 def movement_detected():
@@ -27,7 +27,7 @@ def movement_detected():
     red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
     camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id))
-    asyncio.run(send_iot_message(f"{now} - Movement Detected!"))
+    asyncio.run(send_iot_message(f"{now} - {credentials} - Movement Detected!"))
 
 #No-movement detected method
 def no_movement_detected():
