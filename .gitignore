@@ -1,5 +1,7 @@
 # Custom
 creds.json
+bin/
+*.pb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
