@@ -68,10 +68,8 @@ pantilthat==0.0.7
 parso==0.3.1
 pgzero==1.2
 phatbeat==0.1.1
-=======
 azure-iot-device==2.1.4
 azure-iothub-device-client==1.4.6
->>>>>>> 55d4a60401e6205dea10b4a1be59abcef2d92259
 pianohat==0.1.0
 picamera==1.13
 piglow==1.2.5
