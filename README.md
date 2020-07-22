@@ -1,5 +1,5 @@
 # Bee Tracker
-> An OpenHack codebase to support a Bee Health (mite) tracking IoT App
+> An OpenHack codebase to support a Bee Health (mite) tracking IoT App. This app uses a TensorFlow model to perform image classification on-device.
 
 ## Getting Started
 ### Installation of pre-requisites
@@ -43,3 +43,4 @@ Save this in a file called **creds.json** in the root folder of the application.
 ## Running the app
 Run the app using the command: python motion.py
 
+Note that the initial startup time for the app is approx 30-45 seconds, as it loads the TensorFlow model. Performing image classification on the first image takes substantially longer (30s), than every subsequent image (1.1s).
