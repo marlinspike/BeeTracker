@@ -1,4 +1,6 @@
 
+import os
+import signal
 import RPi.GPIO as GPIO
 from gpiozero import MotionSensor, LED
 from RCamera import RCamera
@@ -9,9 +11,8 @@ from datetime import datetime
 from utils import CredentialInfo
 from message_payload import MessagePayload
 from tf_classify import TFClassify
-import json
-import time
-import signal, os, sys
+import app_logger
+import sys, json, logging
 
 
 #Define some globals
@@ -20,43 +21,49 @@ red_led = LED(18)   #LED connected to GPIO pin 18
 camera = RCamera()  #Camera connected to camera pins
 credentials: Credentials = Credentials()
 device_client: IoTHubDeviceClient = IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
-start_time = time.time()
+start_time = datetime.now()
 tfclassifier = TFClassify()
-print(f"TensorFlow took {time.time() - start_time} seconds to load")
+log:logging.Logger = app_logger.get_logger()
+#print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
+log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 
 async def send_iot_message(message=""):
     if message == "":
         message = MessagePayload.from_credentials(credentials)
         jsonified_message = message.get_message()
         message = jsonified_message
-    print(f"Sending message to IoT Hub: {message}")
+    log.info(f"Sending message to IoT Hub: {message}")
     await device_client.send_message(message)
 
 def movement_detected():
     global start_time
-    print("Movement Detected!")
+    log.info("Movement Detected!")
     red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
     picture_name = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id))
     tfclassifier.reset()
     tfclassifier.addImage(picture_name)
-    start_time = time.time()
+    start_time = datetime.now()
     picture_classification = tfclassifier.doClassify()
-    print(f"Image Classification took {time.time() - start_time} seconds")
+    log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     message = f"{json.dumps(picture_classification[0])}"
     asyncio.run(send_iot_message(message))
 
 
 #No-movement detected method
 def no_movement_detected():
-    print("No movement...")
+    log.info("No movement...")
     red_led.off()
     
 #Clean up
 def destroy():
-    tfclassifier = None
-    camera = None
-    GPIO.cleanup()  # Release GPIO resource
+    try:
+        tfclassifier = None
+        camera = None
+        GPIO.cleanup()  # Release GPIO resource
+    except Exception as e:
+        log.info(f"Exiting..")
+        sys.exit(0)
     
 #Main app loop.
 def main_loop():
@@ -69,7 +76,10 @@ def main_loop():
 
 def main():
     #device_client = IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
+    start_time = datetime.now()
     asyncio.run(device_client.connect())
+    log.info(f"Starting took {datetime.now() - start_time} seconds")
+    log.info(f"Ready!")
 
 #handles the CTRL-C signal
 def signal_handler(signal, frame):
@@ -83,7 +93,7 @@ def startup():
     
 
 if __name__ == '__main__':     # Program entrance
-    print('Starting...')
+    log.info('Starting...')
     try:
         startup()
     except SystemExit:  # Press ctrl-c to end the program.
