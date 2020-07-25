@@ -1,9 +1,13 @@
 import time
 from lobe import ImageModel
+from lobe.Signature import Signature
 import lobe
 
 start_time = time.time()
-model:ImageModel = ImageModel.load('~/code/bee/BeeCam/tf_models')
+#model:ImageModel = ImageModel.load('~/code/bee/BeeCam/tf_models')
+#sig: Signature = Signature('/home/pi/code/bee/BeeCam/tf_models_lite')
+#model: ImageModel = ImageModel.load_from_signature(sig)
+model: ImageModel = ImageModel.load('/home/pi/code/bee/BeeCam/tf_models_lite')
 
 '''
 The TFClassify class (Tensor Flow Classifier), takes a TensorFlow model and allows you
@@ -45,7 +49,7 @@ class TFClassify:
         for item in self.images:
             res = model.predict_from_file(item)
             predict = res.prediction
-            result = {"image": item, "prediction": predict}
+            result = {"image": item, "prediction": predict, "confidence":"X"}
             self.results.append(result)
         
         #self.results = [model.predict_from_file(item).prediction for item in self.images]

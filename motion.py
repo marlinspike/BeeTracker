@@ -13,14 +13,14 @@ from message_payload import MessagePayload
 from tf_classify import TFClassify
 import app_logger
 import sys, json, logging
-
+import device_connect_service
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
 red_led = LED(18)   #LED connected to GPIO pin 18
 camera = RCamera()  #Camera connected to camera pins
 credentials: Credentials = Credentials()
-device_client: IoTHubDeviceClient = IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
+device_client: IoTHubDeviceClient = None #IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
 start_time = datetime.now()
 tfclassifier = TFClassify()
 log:logging.Logger = app_logger.get_logger()
@@ -46,9 +46,13 @@ def movement_detected():
     start_time = datetime.now()
     picture_classification = tfclassifier.doClassify()
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
-    message = f"{json.dumps(picture_classification[0])}"
-    asyncio.run(send_iot_message(message))
-
+    #Only send telemetry if we see one of the classifications we care about; else, delete the photo
+    if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
+        message = f"{json.dumps(picture_classification[0])}"
+        asyncio.run(send_iot_message(message))
+    else:
+        if os.path.exists(picture_name):
+            os.remove(picture_name)
 
 #No-movement detected method
 def no_movement_detected():
@@ -74,10 +78,12 @@ def main_loop():
         except Exception:  # Press ctrl-c to end the program.
             destroy()
 
-def main():
+async def main():
+    global device_client
     #device_client = IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
     start_time = datetime.now()
-    asyncio.run(device_client.connect())
+    device_client = await device_connect_service.connect_device()
+    #asyncio.run(device_client.connect())
     log.info(f"Starting took {datetime.now() - start_time} seconds")
     log.info(f"Ready!")
 
@@ -87,7 +93,7 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def startup():
-    main()
+    asyncio.run(main())
     signal.signal(signal.SIGINT, signal_handler)
     main_loop()
     

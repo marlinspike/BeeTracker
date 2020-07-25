@@ -1,5 +1,5 @@
 # Bee Tracker
-> An OpenHack codebase to support a Bee Health (mite) tracking IoT App. This app uses a TensorFlow model to perform image classification on-device.
+> An OpenHack codebase to support a Bee Health (mite) tracking IoT App. This app uses a TensorFlow model to perform image classification on-device. Telemetry data is sent to **Azure IoT Central**.
 
 ## Getting Started
 ### Installation of pre-requisites
@@ -29,13 +29,14 @@ This app needs a **creds.json** file to store certain required credential and st
 
 ```json
 {
-    "device_id" : "<device_id_here>",
-    "latitude" : "<your_latitude_here>",
-    "longitude" : "<your_longitude_here>",
-    "owner_email" : "<your_email_here>",
-    "blob_hostname" : "",
-    "blob_container" : "img",
-    "connection_string" : "<IoT_HUB_Connection_String>"
+    "device_id" : "<your device id>",
+    "latitude" : "",
+    "longitude" : "",
+    "owner_email" : "",
+    "provisioning_host": "global.azure-devices-provisioning.net",
+    "registration_id": "<same as device id>",
+    "id_scope": "",
+    "symmetric_key": ""
 }
 ```
 Save this in a file called **creds.json** in the root folder of the application.
