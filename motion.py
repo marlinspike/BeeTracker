@@ -34,7 +34,6 @@ async def send_iot_message(message=""):
         message = jsonified_message
     log.info(f"Sending message to IoT Hub: {message}")
     await device_client.send_message(message)
-    device_client.sent
 
 def movement_detected():
     global start_time
