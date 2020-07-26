@@ -14,13 +14,15 @@ from tf_classify import TFClassify
 import app_logger
 import sys, json, logging
 import device_connect_service
+from iotc.aio import IoTCClient
+from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
 red_led = LED(18)   #LED connected to GPIO pin 18
 camera = RCamera()  #Camera connected to camera pins
 credentials: Credentials = Credentials()
-device_client: IoTHubDeviceClient = None #IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
+device_client: IoTCClient = None #IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
 start_time = datetime.now()
 tfclassifier = TFClassify()
 log:logging.Logger = app_logger.get_logger()
@@ -34,7 +36,9 @@ async def send_iot_message(message=""):
         jsonified_message = message.get_message()
         message = jsonified_message
     log.info(f"Sending message to IoT Hub: {message}")
-    await device_client.send_message(message)
+    #await device_client.send_message(message)
+    if device_client.is_connected():
+        await device_client.send_telemetry(message)
 
 def movement_detected():
     global start_time
@@ -83,7 +87,8 @@ async def main():
     global device_client
     #device_client = IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
     start_time = datetime.now()
-    device_client = await device_connect_service.connect_device()
+    device_client = await device_connect_service.connect_iotc_device() #await device_connect_service.connect_device()
+    
     #asyncio.run(device_client.connect())
     log.info(f"Starting took {datetime.now() - start_time} seconds")
     log.info(f"Ready!")
