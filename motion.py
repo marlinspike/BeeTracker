@@ -16,6 +16,7 @@ import sys, json, logging
 import device_connect_service
 from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
+import iot_events.device_events as device_events
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -31,14 +32,7 @@ log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 
 
 async def send_iot_message(message=""):
-    if message == "":
-        message = MessagePayload.from_credentials(credentials)
-        jsonified_message = message.get_message()
-        message = jsonified_message
-    log.info(f"Sending message to IoT Hub: {message}")
-    #await device_client.send_message(message)
-    if device_client.is_connected():
-        await device_client.send_telemetry(message)
+    await device_events.send_iot_message(device_client, message)
 
 def movement_detected():
     global start_time
@@ -73,25 +67,30 @@ def destroy():
     except Exception as e:
         log.info(f"Exiting..")
         sys.exit(0)
-    
+
+
 #Main app loop.
-def main_loop():
+async def main_loop():
+    move_sensor.when_motion = movement_detected
+    move_sensor.when_no_motion = no_movement_detected
+    device_client.on(IOTCEvents.IOTC_PROPERTIES, device_events.on_props)
+    device_client.on(IOTCEvents.IOTC_COMMAND, device_events.on_commands)
+    device_client.on(IOTCEvents.IOTC_ENQUEUED_COMMAND, device_events.on_enqueued_commands)
     while True:
         try:
-            move_sensor.when_motion = movement_detected
-            move_sensor.when_no_motion = no_movement_detected
-        except Exception:  # Press ctrl-c to end the program.
+            pass
+        except Exception as e:  # Press ctrl-c to end the program.
+            s = e
             destroy()
+
+
+
 
 async def main():
     global device_client
-    #device_client = IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
     start_time = datetime.now()
     device_client = await device_connect_service.connect_iotc_device() #await device_connect_service.connect_device()
-    
-    #asyncio.run(device_client.connect())
-    log.info(f"Starting took {datetime.now() - start_time} seconds")
-    log.info(f"Ready!")
+    log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
 
 #handles the CTRL-C signal
 def signal_handler(signal, frame):
@@ -101,17 +100,17 @@ def signal_handler(signal, frame):
 def startup():
     asyncio.run(main())
     signal.signal(signal.SIGINT, signal_handler)
-    main_loop()
+    asyncio.run(main_loop())
     
 
-if __name__ == '__main__':     # Program entrance
+if __name__ == '__main__':  
     log.info('Starting...')
     try:
         startup()
-    except SystemExit:  # Press ctrl-c to end the program.
+    except SystemExit: 
         try:
             destroy()
-        except: 
-            pass
+        finally: 
+            sys.exit(0)
 
 
