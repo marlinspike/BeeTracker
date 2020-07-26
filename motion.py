@@ -27,6 +27,7 @@ log:logging.Logger = app_logger.get_logger()
 #print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 
+
 async def send_iot_message(message=""):
     if message == "":
         message = MessagePayload.from_credentials(credentials)
