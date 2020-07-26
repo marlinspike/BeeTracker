@@ -40,6 +40,19 @@ class TFClassify:
     def reset(self):
         self.images, self.results = [], []
     
+    def create_json_result(self, prediction, image_path, confidence="X"):
+        calc_val = lambda prediction, item: 1 if prediction == item else 0
+        #IoT Central maps these keys to specific values in the JSON Response. Need to match
+        dicList = {"Honeybee": "Honeybee", "Invader": "Invader", "Male Bee":"MaleBee", "No Bee":"NoBee"}
+        result = {"image": image_path,
+        "confidence": confidence,
+        "prediction":prediction
+        }
+        for key, value in dicList.items():
+            if key == prediction:
+                result[value] = 1
+        return result
+
 
     '''For each image in the images collection, process it, and then return
         an array of results. Each item in the array is a dictionary:
@@ -49,12 +62,15 @@ class TFClassify:
         for item in self.images:
             res = model.predict_from_file(item)
             predict = res.prediction
-            result = {"image": item, "prediction": predict, "confidence":"X"}
+            confidence = "X"
+            # result = {"image": item, "prediction": predict, "confidence":"X"}
+            result = self.create_json_result(predict, item, confidence)
             self.results.append(result)
         
         #self.results = [model.predict_from_file(item).prediction for item in self.images]
         return self.results
             
+
 
 if __name__ == '__main__':
     classifier = TFClassify()
