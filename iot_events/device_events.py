@@ -24,8 +24,9 @@ async def send_iot_message(device_client: IoTCClient, message=""):
         message = jsonified_message
     log.info(f"Sending message to IoT Hub: {message}")
     #await device_client.send_message(message)
-    if device_client.is_connected():
-        await device_client.send_telemetry(message)
+    if device_client.connected:
+        await device_client.send_message(message)
+        #await device_client.send_telemetry(message)
 
 
 async def on_props(propName, propValue):

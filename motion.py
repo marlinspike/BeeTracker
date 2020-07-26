@@ -47,7 +47,7 @@ def movement_detected():
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     #Only send telemetry if we see one of the classifications we care about; else, delete the photo
     if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
-        message = f"{json.dumps(picture_classification[0])}"
+        message = f"{picture_classification[0]}"
         asyncio.run(send_iot_message(message))
     else:
         if os.path.exists(picture_name):
@@ -73,16 +73,12 @@ def destroy():
 async def main_loop():
     move_sensor.when_motion = movement_detected
     move_sensor.when_no_motion = no_movement_detected
-    device_client.on(IOTCEvents.IOTC_PROPERTIES, device_events.on_props)
-    device_client.on(IOTCEvents.IOTC_COMMAND, device_events.on_commands)
-    device_client.on(IOTCEvents.IOTC_ENQUEUED_COMMAND, device_events.on_enqueued_commands)
     while True:
         try:
             pass
         except Exception as e:  # Press ctrl-c to end the program.
             s = e
             destroy()
-
 
 
 

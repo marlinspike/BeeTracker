@@ -43,15 +43,17 @@ class TFClassify:
     def create_json_result(self, prediction, image_path, confidence="X"):
         calc_val = lambda prediction, item: 1 if prediction == item else 0
         #IoT Central maps these keys to specific values in the JSON Response. Need to match
-        dicList = {"Honeybee": "Honeybee", "Invader": "Invader", "Male Bee":"MaleBee", "No Bee":"NoBee"}
+        dicList = {"Honeybee": "Honeybee", "Invader": "Invader", "Male Bee":"MaleBee", "No Bee":"NoBee", "Mite":"Mite"}
         result = {
-            "prediction": prediction,
             "confidence": confidence,
+            "prediction": prediction,
             "image": image_path
         }
         for key, value in dicList.items():
             if key == prediction:
                 result[value] = 1
+            else:
+                result[value] = 0
         return result
 
 
