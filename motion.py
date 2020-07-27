@@ -71,21 +71,25 @@ def destroy():
 
 #Main app loop.
 async def main_loop():
+    global device_client
+    device_client = await device_connect_service.connect_iotc_device()
+    # await device_connect_service.connect_device()
     move_sensor.when_motion = movement_detected
     move_sensor.when_no_motion = no_movement_detected
     while True:
         try:
+            method_request = await device_client.receive_method_request()
             pass
         except Exception as e:  # Press ctrl-c to end the program.
-            s = e
-            destroy()
+            log.error("Exception in main_loop: {e}")
+            break
+    destroy()
 
 
 
 async def main():
     global device_client
     start_time = datetime.now()
-    device_client = await device_connect_service.connect_iotc_device() #await device_connect_service.connect_device()
     log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
 
 #handles the CTRL-C signal

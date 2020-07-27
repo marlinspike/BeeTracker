@@ -15,7 +15,21 @@ from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 log: logging.Logger = app_logger.get_logger()
 
 
-            
+async def hw_command(request):
+    print('Received synchronous call to blink')
+    response = MethodResponse.create_from_method_request(
+        request, status=200, payload={'description': f'Blinking LED every {request.payload} seconds'}
+    )
+    await device_client.send_method_response(response)  # send response
+    print(f'Blinking LED every {request.payload} seconds')
+
+device_commands = {
+    'hello_world': hw_command,
+}
+
+
+
+
 async def send_iot_message(device_client: IoTCClient, message=""):
     global log
     if message == "":
@@ -29,16 +43,3 @@ async def send_iot_message(device_client: IoTCClient, message=""):
         #await device_client.send_telemetry(message)
 
 
-async def on_props(propName, propValue):
-    print(propValue)
-    return True
-
-
-async def on_commands(command, ack):
-    print(command.name)
-    await ack(command.name, 'Command received', command.request_id)
-
-
-async def on_enqueued_commands(command_name, command_data):
-    print(command_name)
-    print(command_data)
