@@ -1,24 +1,19 @@
 
-import argparse
-import os
-import signal
 import RPi.GPIO as GPIO
 from gpiozero import MotionSensor, LED
 from RCamera import RCamera
 from credentials import Credentials
-import asyncio
 from azure.iot.device.aio import IoTHubDeviceClient
 from datetime import datetime
 from utils import CredentialInfo
 from message_payload import MessagePayload
 from tf_classify import TFClassify
-import app_logger
-import sys, json, logging
+import sys, json, logging, argparse, app_logger, asyncio, signal, os
 import device_connect_service
 from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
-import argparse
+from app_settings import AppSettings
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -48,6 +43,7 @@ def movement_detected():
     picture_classification = tfclassifier.doClassify()
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     #Only send telemetry if we see one of the classifications we care about; else, delete the photo
+    valid_labels = AppSettings().get_TFLabels() # Labels classified
     if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
         asyncio.run(send_iot_message(message))
