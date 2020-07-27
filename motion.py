@@ -14,6 +14,11 @@ from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
+import adafruit_vcnl4010
+import time
+import busio
+import board
+import Adafruit_VCNL40xx
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -27,11 +32,38 @@ log:logging.Logger = app_logger.get_logger()
 #print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _USE_TEST_MODE = False
+# Proxmity Sensor i2c
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_vcnl4010.VCNL4010(i2c)
+# List for calibration
+motionSense=[]
+percent = None
+vcnl = Adafruit_VCNL40xx.VCNL4010()
+
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
 
-def movement_detected():
+
+# Calibrate the proximity sensor
+def calibratePSensor():
+    print("Calibrating Proximity Sensor...")
+    for i in range (3):
+        proximity = sensor.proximity
+        print("Proximity: {0}".format(proximity))
+        motionSense.append(proximity)
+        time.sleep(1)
+
+    avg = sum(motionSense) / len(motionSense)
+    print("Average Proximity: " + str(avg))
+    # Increase average proximity by 2% as "motion"
+    percent = avg + (avg * .02) 
+    print("Plus 2%: " + str(percent))
+    return percent
+
+async def movement_detected():
     global start_time
     log.info("Movement Detected!")
     red_led.on()
@@ -46,13 +78,14 @@ def movement_detected():
     valid_labels = AppSettings().get_TFLabels() # Labels classified
     if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
-        asyncio.run(send_iot_message(message))
+        #asyncio.run(send_iot_message(message))
+        await send_iot_message(message)
     else:
         if os.path.exists(picture_name):
             os.remove(picture_name)
 
 #No-movement detected method
-def no_movement_detected():
+async def no_movement_detected():
     log.info("No movement...")
     red_led.off()
     
@@ -66,17 +99,19 @@ def destroy():
         log.info(f"Exiting..")
         sys.exit(0)
 
-
 #Main app loop.
 async def main_loop():
     global device_client
+    global percent
     device_client = await device_connect_service.connect_iotc_device()
     # await device_connect_service.connect_device()
-    move_sensor.when_motion = movement_detected
-    move_sensor.when_no_motion = no_movement_detected
+    #move_sensor.when_motion = movement_detected
+    #move_sensor.when_no_motion = no_movement_detected
     while True:
         try:
-            method_request = await device_client.receive_method_request()
+            proximity = vcnl.read_proximity()
+            if proximity >= percent:
+                await movement_detected()
             pass
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
@@ -86,6 +121,10 @@ async def main_loop():
 
 
 async def main():
+    global percent
+    # Calibrate the proximity sensor
+    percent = calibratePSensor() 
+
     global device_client
     start_time = datetime.now()
     log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
