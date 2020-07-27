@@ -24,7 +24,6 @@ class Credentials:
         try:
             with open(self.filepath) as cred_data:
                 credentials = json.load(cred_data)
-                self.connection_string = credentials['connection_string']
                 self.device_id = credentials['device_id']
                 self.longitude = credentials['longitude']
                 self.latitude = credentials['latitude']
