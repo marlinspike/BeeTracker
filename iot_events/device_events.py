@@ -15,6 +15,7 @@ from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 log: logging.Logger = app_logger.get_logger()
 
 
+#Demo Implementation -- needs to be implemented in v6 of the Device Template!
 async def hw_command(request):
     print('Received synchronous call to blink')
     response = MethodResponse.create_from_method_request(

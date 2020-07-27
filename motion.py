@@ -1,4 +1,5 @@
 
+import argparse
 import os
 import signal
 import RPi.GPIO as GPIO
@@ -17,6 +18,7 @@ import device_connect_service
 from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
+import argparse
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -29,7 +31,7 @@ tfclassifier = TFClassify()
 log:logging.Logger = app_logger.get_logger()
 #print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
-
+_USE_TEST_MODE = False
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
@@ -39,7 +41,7 @@ def movement_detected():
     log.info("Movement Detected!")
     red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
-    picture_name = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id))
+    picture_name = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id), _USE_TEST_MODE)
     tfclassifier.reset()
     tfclassifier.addImage(picture_name)
     start_time = datetime.now()
@@ -105,6 +107,13 @@ def startup():
 
 if __name__ == '__main__':  
     log.info('Starting...')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test', required=False)
+    args = parser.parse_args()
+    _USE_TEST_MODE = args.test
+    if (_USE_TEST_MODE):
+        log.info("Starting in TEST Mode")
+
     try:
         startup()
     except SystemExit: 
