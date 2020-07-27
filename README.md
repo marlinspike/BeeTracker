@@ -45,3 +45,11 @@ Save this in a file called **creds.json** in the root folder of the application.
 Run the app using the command: python motion.py
 
 Note that the initial startup time for the app is approx 30-45 seconds, as it loads the TensorFlow model. Performing image classification on the first image takes substantially longer (30s), than every subsequent image (1.1s).
+
+## Running in TEST Mode
+Test mode tells the app to use the sample images in the **img_test** folder instead of ones it takes with the camera. These images are not ones used to train the model used, but ones that will test the classification and allow the app to run without the need for Bees to look at!
+
+**To run in TEST Mode:**
+```bash
+python motion.py --test True
+```
