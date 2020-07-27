@@ -30,6 +30,16 @@ log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
+# Proxmity Sensor i2c
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_vcnl4010.VCNL4010(i2c)
+# List for calibration
+motionSense=[]
+percent = None
+vcnl = Adafruit_VCNL40xx.VCNL4010()
+
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
 
 i2c = busio.I2C(board.SCL, board.SDA)
 psensor = adafruit_vcnl4010.VCNL4010(i2c)
@@ -89,7 +99,7 @@ async def movement_detected():
             os.remove(picture_name)
 
 #No-movement detected method
-def no_movement_detected():
+async def no_movement_detected():
     log.info("No movement...")
     red_led.off()
 
