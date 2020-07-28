@@ -37,9 +37,7 @@ sensor = adafruit_vcnl4010.VCNL4010(i2c)
 motionSense=[]
 percent = None
 vcnl = Adafruit_VCNL40xx.VCNL4010()
-
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
+_app_settings = AppSettings()
 
 i2c = busio.I2C(board.SCL, board.SDA)
 psensor = adafruit_vcnl4010.VCNL4010(i2c)
@@ -103,6 +101,16 @@ async def no_movement_detected():
     log.info("No movement...")
     red_led.off()
 
+#Clean up
+def destroy():
+    try:
+        tfclassifier = None
+        camera = None
+        GPIO.cleanup()  # Release GPIO resource
+    except Exception as e:
+        log.info(f"Exiting..")
+        sys.exit(0)
+
 #Main app loop.
 async def main_loop():
     global _IoT_Commands
@@ -121,6 +129,7 @@ async def main_loop():
         pass
 
     print("Ready to detect motion...")
+
     while True:
         try:
             if(args.sensor == 'vcnl4010'):
