@@ -1,4 +1,3 @@
-
 import RPi.GPIO as GPIO
 from gpiozero import MotionSensor, LED
 from RCamera import RCamera
@@ -14,6 +13,7 @@ from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
+import iot_events.iot_commands as iot_commands
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -28,6 +28,13 @@ log:logging.Logger = app_logger.get_logger()
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
 _USE_TEST_MODE = False
+#These commands are sent by IoT Central to the device
+
+_IoT_Commands = {
+    'DownloadModel': iot_commands.iot_download_model,
+    'UploadImages': iot_commands.iot_upload_images,
+    'Blink': iot_commands.iot_blink
+}
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
@@ -70,20 +77,21 @@ def destroy():
 
 #Main app loop.
 async def main_loop():
+    global _IoT_Commands
     global device_client
+
     device_client = await device_connect_service.connect_iotc_device()
-    # await device_connect_service.connect_device()
     move_sensor.when_motion = movement_detected
     move_sensor.when_no_motion = no_movement_detected
     while True:
         try:
             method_request = await device_client.receive_method_request()
+            await _IoT_Commands[method_request.name](method_request)
             pass
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
             break
     destroy()
-
 
 
 async def main():
@@ -118,5 +126,6 @@ if __name__ == '__main__':
             destroy()
         finally: 
             sys.exit(0)
+
 
 
