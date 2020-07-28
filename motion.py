@@ -26,6 +26,7 @@ tfclassifier = TFClassify()
 log:logging.Logger = app_logger.get_logger()
 #print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
+_app_settings = AppSettings()
 _USE_TEST_MODE = False
 
 async def send_iot_message(message=""):
@@ -43,8 +44,8 @@ def movement_detected():
     picture_classification = tfclassifier.doClassify()
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     #Only send telemetry if we see one of the classifications we care about; else, delete the photo
-    valid_labels = AppSettings().get_TFLabels() # Labels classified
-    if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
+    valid_labels = _app_settings.get_TFLabels() # Labels classified
+    if (picture_classification[0]['prediction'] in valid_labels): #["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
         asyncio.run(send_iot_message(message))
     else:

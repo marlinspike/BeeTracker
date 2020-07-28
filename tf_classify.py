@@ -64,25 +64,19 @@ class TFClassify:
     def doClassify(self) -> []:
         for item in self.images:
             res = model.predict_from_file(item)
-            predict = res.prediction
-            confidence = "X"
-            # result = {"image": item, "prediction": predict, "confidence":"X"}
+            predict, confidence = res.labels[0]
             result = self.create_json_result(predict, item, confidence)
             self.results.append(result)
-        
-        #self.results = [model.predict_from_file(item).prediction for item in self.images]
         return self.results
             
 
 
 if __name__ == '__main__':
     classifier = TFClassify()
-    #print(f"TensorFlow load took {time.time() - start_time} seconds")
     start_time = time.time()
     classifier.reset()
     classifier.addImage('/home/pi/code/bee/BeeCam/tf_models/1.jpeg')
     classifier.addImage('/home/pi/code/bee/BeeCam/tf_models/2.jpeg')
     results = classifier.doClassify()
-    #print(f"TensorFlow classification took {time.time() - start_time} seconds")
     for r in results:
         print(r)
