@@ -22,7 +22,7 @@ import Adafruit_VCNL40xx
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
-red_led = LED(18)   #LED connected to GPIO pin 18
+#red_led = LED(18)   #LED connected to GPIO pin 18
 camera = RCamera()  #Camera connected to camera pins
 credentials: Credentials = Credentials()
 device_client: IoTCClient = None #IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
@@ -39,9 +39,7 @@ sensor = adafruit_vcnl4010.VCNL4010(i2c)
 motionSense=[]
 percent = None
 vcnl = Adafruit_VCNL40xx.VCNL4010()
-
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
+_app_settings = AppSettings()
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
@@ -52,6 +50,7 @@ def calibratePSensor():
     print("Calibrating Proximity Sensor...")
     for i in range (3):
         proximity = sensor.proximity
+        #proximity = vcnl.read_proximity()
         print("Proximity: {0}".format(proximity))
         motionSense.append(proximity)
         time.sleep(1)
@@ -66,7 +65,7 @@ def calibratePSensor():
 async def movement_detected():
     global start_time
     log.info("Movement Detected!")
-    red_led.on()
+    #red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
     picture_name = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id), _USE_TEST_MODE)
     tfclassifier.reset()
@@ -75,7 +74,7 @@ async def movement_detected():
     picture_classification = tfclassifier.doClassify()
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     #Only send telemetry if we see one of the classifications we care about; else, delete the photo
-    valid_labels = AppSettings().get_TFLabels() # Labels classified
+    valid_labels = _app_settings.get_TFLabels() # Labels classified
     if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
         #asyncio.run(send_iot_message(message))
@@ -87,7 +86,7 @@ async def movement_detected():
 #No-movement detected method
 async def no_movement_detected():
     log.info("No movement...")
-    red_led.off()
+    #red_led.off()
     
 #Clean up
 def destroy():
@@ -103,10 +102,9 @@ def destroy():
 async def main_loop():
     global device_client
     global percent
+    global proximity
     device_client = await device_connect_service.connect_iotc_device()
-    # await device_connect_service.connect_device()
-    #move_sensor.when_motion = movement_detected
-    #move_sensor.when_no_motion = no_movement_detected
+
     while True:
         try:
             proximity = vcnl.read_proximity()
@@ -117,8 +115,6 @@ async def main_loop():
             log.error("Exception in main_loop: {e}")
             break
     destroy()
-
-
 
 async def main():
     global percent
@@ -156,5 +152,4 @@ if __name__ == '__main__':
             destroy()
         finally: 
             sys.exit(0)
-
 
