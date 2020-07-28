@@ -75,7 +75,7 @@ async def movement_detected():
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     #Only send telemetry if we see one of the classifications we care about; else, delete the photo
     valid_labels = _app_settings.get_TFLabels() # Labels classified
-    if (picture_classification[0]['prediction'] in ["Honeybee", "Invader", "Male Bee"]):
+    if ((picture_classification[0]['prediction'] in valid_labels) and (picture_classification[0]['confidence'] < 0.60)):
         message = f"{picture_classification[0]}"
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
