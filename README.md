@@ -35,7 +35,8 @@ This app needs a **creds.json** file to store certain required credential and st
     "provisioning_host": "global.azure-devices-provisioning.net",
     "registration_id": "<same as device id>",
     "id_scope": "",
-    "symmetric_key": ""
+    "symmetric_key": "",
+    "blob_token":"<blob_sas_token_for_images>"
 }
 ```
 Save this in a file called **creds.json** in the root folder of the application.
