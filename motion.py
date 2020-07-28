@@ -15,7 +15,6 @@ import iot_events.device_events as device_events
 from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
 
-import time
 from azure.storage.blob import ContainerClient
 
 #Define some globals
