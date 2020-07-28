@@ -8,6 +8,6 @@ class Enum(set):
 #Implementation of Enum that lets you request this info from the get_credential_info method in the credentials.Credentials class
 CredentialInfo = Enum(["device_id", "connection_string", "latitude", "longitude",
                     "owner_email", "blob_hostname", "blob_container",
-                       "provisioning_host", "registration_id", "id_scope", "symmetric_key", "blob_token"
+                       "provisioning_host", "registration_id", "id_scope", "symmetric_key", "blob_token", "tf_models"
                     ])
 

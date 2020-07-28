@@ -37,7 +37,8 @@ This app needs a **creds.json** file to store certain required credential and st
     "registration_id": "<same as device id>",
     "id_scope": "",
     "symmetric_key": "",
-    "blob_token":"<blob_sas_token_for_images>"
+    "blob_token":"<blob_sas_token_for_images>",
+    "tf_models":"<blob_token_for_tfmodels>"
 }
 ```
 Save this in a file called **creds.json** in the root folder of the application.
