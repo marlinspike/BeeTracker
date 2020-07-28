@@ -102,6 +102,16 @@ async def no_movement_detected():
     log.info("No movement...")
     red_led.off()
 
+#Clean up
+def destroy():
+    try:
+        tfclassifier = None
+        camera = None
+        GPIO.cleanup()  # Release GPIO resource
+    except Exception as e:
+        log.info(f"Exiting..")
+        sys.exit(0)
+
 #Main app loop.
 async def main_loop():
     global _IoT_Commands
@@ -120,6 +130,7 @@ async def main_loop():
         pass
 
     print("Ready to detect motion...")
+
     while True:
         try:
             if(args.sensor == 'vcnl4010'):
