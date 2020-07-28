@@ -79,7 +79,7 @@ async def movement_detected():
         message = f"{picture_classification[0]}"
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
-    if (picture_classification[0]['confidence'] < 0.60):
+    if (picture_classification[0]['confidence'] > 0.60):
         if os.path.exists(picture_name):
             os.remove(picture_name)
 
