@@ -15,6 +15,9 @@ import iot_events.device_events as device_events
 from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
 
+import time
+from azure.storage.blob import ContainerClient
+
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
 red_led = LED(18)   #LED connected to GPIO pin 18
@@ -35,6 +38,39 @@ _IoT_Commands = {
     'UploadImages': iot_commands.iot_upload_images,
     'Blink': iot_commands.iot_blink
 }
+
+# Download the most up to date model from azure blob storage, using
+# the credentials from the creds.json to access the storage blob file
+async def download_model():
+    log.info("Downloading the latest lobe ML model from Azure Blob Storage")
+
+    # Setup blob service and container client for downloading from the blob storage
+    container = ContainerClient.from_container_url(credentials.tf_models)
+
+    blob_list = container.list_blobs()
+    for blob in blob_list:
+        if blob.name.endswith(".tflite") or blob.name == "signature.json":
+            download_path = os.path.join('./tf_models_lite', blob.name)
+            log.info("Downloading %s to %s" % (blob.name, download_path))
+
+            blob_client = container.get_blob_client(blob)
+            with open(download_path, "wb") as local_file:
+                download_stream = blob_client.download_blob()
+                local_file.write(download_stream.readall())
+        else:
+            pass
+
+async def upload_image(file_path):
+    log.info("Uploading camera image to Azure Storage Blob")
+    path, file_name = os.path.split(file_path)
+
+    # Setup blob service and container client for downloading from the blob storage
+    container = ContainerClient.from_container_url(credentials.blob_token)
+    blob = container.get_blob_client(file_name)
+
+    # Upload content to block blob
+    with open(file_path, "rb") as data:
+       blob.upload_blob(data, blob_type="BlockBlob")
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
