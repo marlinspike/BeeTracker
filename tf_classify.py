@@ -2,8 +2,9 @@ import time
 from lobe import ImageModel
 from lobe.Signature import Signature
 import lobe
+from app_settings import AppSettings
 
-start_time = time.time()
+_app_settings = AppSettings()
 #model:ImageModel = ImageModel.load('~/code/bee/BeeCam/tf_models')
 #sig: Signature = Signature('/home/pi/code/bee/BeeCam/tf_models_lite')
 #model: ImageModel = ImageModel.load_from_signature(sig)
@@ -42,8 +43,9 @@ class TFClassify:
     
     def create_json_result(self, prediction, image_path, confidence="X"):
         calc_val = lambda prediction, item: 1 if prediction == item else 0
+        valid_labels = _app_settings.get_TFLabels()
         #IoT Central maps these keys to specific values in the JSON Response. Need to match
-        dicList = {"Honeybee": "Honeybee", "Invader": "Invader", "Male Bee":"MaleBee", "No Bee":"NoBee", "Mite":"Mite"}
+        dicList = {k: v for (k, v) in zip(valid_labels, valid_labels)}
         result = {
             "confidence": confidence,
             "prediction": prediction,
@@ -73,7 +75,6 @@ class TFClassify:
 
 if __name__ == '__main__':
     classifier = TFClassify()
-    start_time = time.time()
     classifier.reset()
     classifier.addImage('/home/pi/code/bee/BeeCam/tf_models/1.jpeg')
     classifier.addImage('/home/pi/code/bee/BeeCam/tf_models/2.jpeg')
