@@ -38,6 +38,13 @@ motionSense=[]
 percent = None
 vcnl = Adafruit_VCNL40xx.VCNL4010()
 _app_settings = AppSettings()
+#These commands are sent by IoT Central to the device
+_IoT_Commands = {
+    'DownloadModel': iot_commands.iot_download_model,
+    'UploadImages': iot_commands.iot_upload_images,
+    'Blink': iot_commands.iot_blink
+}
+
 
 i2c = busio.I2C(board.SCL, board.SDA)
 psensor = adafruit_vcnl4010.VCNL4010(i2c)

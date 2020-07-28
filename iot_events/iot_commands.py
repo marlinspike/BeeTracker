@@ -59,3 +59,4 @@ async def iot_blink(request, device_client, credentials):
     response = MethodResponse.create_from_method_request(request, status=200)
     asyncio.sleep(0)
     await device_client.send_method_response(response)  # send response
+
