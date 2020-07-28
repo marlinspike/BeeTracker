@@ -15,6 +15,7 @@ class Credentials:
         self.registration_id = ""
         self.id_scope = ""
         self.symmetric_key = ""
+        self.blob_token = ""
         self.credential_dict = {}
         self.read_credentials()
 
@@ -32,6 +33,7 @@ class Credentials:
                 self.registration_id = credentials['registration_id']
                 self.id_scope = credentials['id_scope']
                 self.symmetric_key = credentials['symmetric_key']
+                self.blob_token = credentials['blob_token']
                 self.credential_dict = credentials
         except Exception as e:
             print(f"There was an error reading credentials from: {self.credsFile}")
