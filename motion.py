@@ -15,9 +15,6 @@ import iot_events.device_events as device_events
 from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
 
-from azure.storage.blob import ContainerClient
-import time
-
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
 red_led = LED(18)   #LED connected to GPIO pin 18
@@ -38,47 +35,6 @@ _IoT_Commands = {
     'UploadImages': iot_commands.iot_upload_images,
     'Blink': iot_commands.iot_blink
 }
-
-# Download the most up to date model from azure blob storage, using
-# the credentials from the creds.json to access the storage blob file
-async def download_model():
-    log.info("Downloading the latest lobe ML model from Azure Blob Storage")
-
-    # Setup blob service and container client for downloading from the blob storage
-    container = ContainerClient.from_container_url(credentials.tf_models)
-
-    blob_list = container.list_blobs()
-    for blob in blob_list:
-        if blob.name.endswith(".tflite") or blob.name == "signature.json":
-            download_path = os.path.join('./tf_models_lite', blob.name)
-            log.info("Downloading %s to %s" % (blob.name, download_path))
-
-            blob_client = container.get_blob_client(blob)
-            with open(download_path, "wb") as local_file:
-                download_stream = blob_client.download_blob()
-                local_file.write(download_stream.readall())
-        else:
-            pass
-
-async def upload_images():
-    log.info("Uploading camera image to Azure Storage Blob")
-
-    # Setup blob service and container client for downloading from the blob storage
-    container = ContainerClient.from_container_url(credentials.blob_token)
-
-    for filename in os.listdir('img'):
-        filepath = 'img/' + filename
-        if filename.endswith('.jpg'):
-            blob = container.get_blob_client(filename)
-
-            # Upload content to block blob
-            with open(filepath, "rb") as data:
-                log.info("Uploading %s to blob storage" % (filename))
-                blob.upload_blob(data, blob_type="BlockBlob")
-            
-            # Delete the file once it was uploaded
-            if os.path.exists(filepath):
-                os.remove(filepath)
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
@@ -118,24 +74,6 @@ def destroy():
         log.info(f"Exiting..")
         sys.exit(0)
 
-async def command_loop():
-    global device_client
-
-    while device_client == None:
-        print("Waiting for IoT device connection...")
-        time.sleep(5)
-
-    while True:
-        # Wait for the command request and handle appropriately
-        command_request = await device_client.receive_method_request()
-
-        if command_request.name == "DownloadModel":
-            await download_model()
-        elif command_request.name == "UploadImages":
-            await upload_images()
-        # elif command_request.name == "UpdateSoftware":
-            # await upload_software() 
-
 #Main app loop.
 async def main_loop():
     global _IoT_Commands
@@ -147,7 +85,7 @@ async def main_loop():
     while True:
         try:
             method_request = await device_client.receive_method_request()
-            await _IoT_Commands[method_request.name](method_request)
+            await _IoT_Commands[method_request.name](method_request, device_client, credentials)
             pass
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
