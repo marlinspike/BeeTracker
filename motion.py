@@ -74,7 +74,6 @@ def destroy():
         log.info(f"Exiting..")
         sys.exit(0)
 
-
 #Main app loop.
 async def main_loop():
     global _IoT_Commands
@@ -86,7 +85,7 @@ async def main_loop():
     while True:
         try:
             method_request = await device_client.receive_method_request()
-            await _IoT_Commands[method_request.name](method_request)
+            await _IoT_Commands[method_request.name](method_request, device_client, credentials)
             pass
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
