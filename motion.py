@@ -19,6 +19,9 @@ import time
 import busio
 import board
 import Adafruit_VCNL40xx
+import iot_events.iot_commands as iot_commands
+from azure.storage.blob import ContainerClient
+
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -40,6 +43,13 @@ motionSense=[]
 percent = None
 vcnl = Adafruit_VCNL40xx.VCNL4010()
 _app_settings = AppSettings()
+#These commands are sent by IoT Central to the device
+_IoT_Commands = {
+    'DownloadModel': iot_commands.iot_download_model,
+    'UploadImages': iot_commands.iot_upload_images,
+    'Blink': iot_commands.iot_blink
+}
+
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
@@ -103,6 +113,7 @@ async def main_loop():
     global device_client
     global percent
     global proximity
+    global _IoT_Commands
     device_client = await device_connect_service.connect_iotc_device()
 
     while True:
@@ -110,6 +121,8 @@ async def main_loop():
             proximity = vcnl.read_proximity()
             if proximity >= percent:
                 await movement_detected()
+            method_request = await device_client.receive_method_request()
+            await _IoT_Commands[method_request.name](method_request, device_client, credentials)
             pass
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
