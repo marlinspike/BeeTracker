@@ -7,7 +7,7 @@ start_time = time.time()
 #model:ImageModel = ImageModel.load('~/code/bee/BeeCam/tf_models')
 #sig: Signature = Signature('/home/pi/code/bee/BeeCam/tf_models_lite')
 #model: ImageModel = ImageModel.load_from_signature(sig)
-model: ImageModel = ImageModel.load('/home/pi/code/bee/BeeCam/tf_models_lite')
+model: ImageModel = ImageModel.load('./tf_models_lite')
 
 '''
 The TFClassify class (Tensor Flow Classifier), takes a TensorFlow model and allows you
