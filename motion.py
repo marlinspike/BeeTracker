@@ -16,6 +16,7 @@ from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
 
 from azure.storage.blob import ContainerClient
+import time
 
 #Define some globals
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
@@ -59,17 +60,25 @@ async def download_model():
         else:
             pass
 
-async def upload_image(file_path):
+async def upload_images():
     log.info("Uploading camera image to Azure Storage Blob")
-    path, file_name = os.path.split(file_path)
 
     # Setup blob service and container client for downloading from the blob storage
     container = ContainerClient.from_container_url(credentials.blob_token)
-    blob = container.get_blob_client(file_name)
 
-    # Upload content to block blob
-    with open(file_path, "rb") as data:
-       blob.upload_blob(data, blob_type="BlockBlob")
+    for filename in os.listdir('img'):
+        filepath = 'img/' + filename
+        if filename.endswith('.jpg'):
+            blob = container.get_blob_client(filename)
+
+            # Upload content to block blob
+            with open(filepath, "rb") as data:
+                log.info("Uploading %s to blob storage" % (filename))
+                blob.upload_blob(data, blob_type="BlockBlob")
+            
+            # Delete the file once it was uploaded
+            if os.path.exists(filepath):
+                os.remove(filepath)
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
@@ -109,6 +118,23 @@ def destroy():
         log.info(f"Exiting..")
         sys.exit(0)
 
+async def command_loop():
+    global device_client
+
+    while device_client == None:
+        print("Waiting for IoT device connection...")
+        time.sleep(5)
+
+    while True:
+        # Wait for the command request and handle appropriately
+        command_request = await device_client.receive_method_request()
+
+        if command_request.name == "DownloadModel":
+            await download_model()
+        elif command_request.name == "UploadImages":
+            await upload_images()
+        # elif command_request.name == "UpdateSoftware":
+            # await upload_software() 
 
 #Main app loop.
 async def main_loop():
