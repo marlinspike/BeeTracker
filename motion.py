@@ -37,9 +37,7 @@ sensor = adafruit_vcnl4010.VCNL4010(i2c)
 motionSense=[]
 percent = None
 vcnl = Adafruit_VCNL40xx.VCNL4010()
-
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
+_app_settings = AppSettings()
 
 i2c = busio.I2C(board.SCL, board.SDA)
 psensor = adafruit_vcnl4010.VCNL4010(i2c)
