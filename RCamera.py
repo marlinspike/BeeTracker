@@ -15,7 +15,7 @@ class RCamera:
     def cam_setup(self):
         #_camera = PiCamera()
         self.camera.rotation = 0
-        self.camera.resolution = (640,480)#(2592,1944)
+        self.camera.resolution = (2592,1944) #640x480
 
     def get_demo_pics(self) -> []:
         return [f for f in listdir("img_test/") if isfile(join("img_test/", f))]
