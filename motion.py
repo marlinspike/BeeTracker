@@ -99,9 +99,10 @@ async def movement_detected():
         picture_name =  os.path.join("img", picture_classification[0]['Prediction'].__str__(), pic_info[0])
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
-    if ((picture_classification[0]['Confidence'] >1) and _USE_TEST_MODE == False):
-        if os.path.exists(picture_name):
-            os.remove(picture_name)
+    if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
+        pass
+        #if os.path.exists(picture_name):
+            #os.remove(picture_name)
 
 #No-movement detected method
 async def no_movement_detected():
