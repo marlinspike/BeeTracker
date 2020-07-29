@@ -206,3 +206,4 @@ if __name__ == '__main__':
     finally:
         GPIO.cleanup()
         sys.exit(0)
+
