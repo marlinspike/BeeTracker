@@ -40,7 +40,7 @@ async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
 
 def movement_detected():
-    global start_time
+    global start_time, _USE_TEST_MODE
     log.info("Movement Detected!")
     red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
@@ -55,7 +55,7 @@ def movement_detected():
     if ((picture_classification[0]['Prediction'] in valid_labels)): #["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
         asyncio.run(send_iot_message(message))
-    if (picture_classification[0]['Confidence'] > 0.60):
+    if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
         if os.path.exists(picture_name):
             os.remove(picture_name)
 
