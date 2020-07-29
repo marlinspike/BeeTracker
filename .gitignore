@@ -2,6 +2,9 @@
 creds.json
 bin/
 *.pb
+*.log*
+*.tflite
+signature.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
