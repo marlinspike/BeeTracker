@@ -47,9 +47,9 @@ class TFClassify:
         #IoT Central maps these keys to specific values in the JSON Response. Need to match
         dicList = {k: v for (k, v) in zip(valid_labels, valid_labels)}
         result = {
-            "confidence": confidence,
-            "prediction": prediction,
-            "image": image_path
+            "Confidence": confidence,
+            "Prediction": prediction,
+            "Image": image_path
         }
         for key, value in dicList.items():
             if key == prediction:
