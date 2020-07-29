@@ -28,12 +28,10 @@ class TFClassify:
     def __init__(self):
         self.images = []
         self.results = []
-
     #Add a single image to the classifier
     def addImage(self, imagePath) -> int:
         self.images.append(imagePath)
         return len(self.images)
-
     #Add an array of images to the classifier
     def addImages(self, imagePaths:[]) -> int:
         self.images = imagePaths
@@ -78,8 +76,8 @@ class TFClassify:
 if __name__ == '__main__':
     classifier = TFClassify()
     classifier.reset()
-    classifier.addImage('/home/pi/code/bee/BeeCam/tf_models/1.jpeg')
-    classifier.addImage('/home/pi/code/bee/BeeCam/tf_models/2.jpeg')
+    classifier.addImage('tf_models/1.jpeg')
+    classifier.addImage('tf_models/2.jpeg')
     results = classifier.doClassify()
     for r in results:
         print(r)
