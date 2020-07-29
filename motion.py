@@ -68,16 +68,19 @@ def calibratePSensor():
     avg = sum(motionSense) / len(motionSense)
     print("Average Proximity: " + str(avg))
     # Increase average proximity by 2% as "motion"
-    percent = avg + (avg * .02) 
+    percent = avg + (avg * .02)
     print("Plus 2%: " + str(percent))
     return percent
 
 async def movement_detected():
-    global start_time
+    global start_time, _USE_TEST_MODE
     log.info("Movement Detected!")
     #red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
-    picture_name = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id), _USE_TEST_MODE)
+    pic_folder = 'img/'
+    device_id = credentials.get_credentail_info(CredentialInfo.device_id)
+    picture_name = camera.take_picture(pic_folder, device_id, _USE_TEST_MODE)
+    log.info("Took picture via device '%s': '%s'", device_id, picture_name)
     tfclassifier.reset()
     tfclassifier.addImage(picture_name)
     start_time = datetime.now()
@@ -89,7 +92,7 @@ async def movement_detected():
         message = f"{picture_classification[0]}"
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
-    if (picture_classification[0]['Confidence'] > 0.60):
+    if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
         if os.path.exists(picture_name):
             os.remove(picture_name)
 
@@ -97,7 +100,7 @@ async def movement_detected():
 async def no_movement_detected():
     log.info("No movement...")
     #red_led.off()
-    
+
 #Clean up
 def destroy():
     try:
@@ -121,9 +124,8 @@ async def main_loop():
             proximity = vcnl.read_proximity()
             if proximity >= percent:
                 await movement_detected()
-            method_request = await device_client.receive_method_request()
-            await _IoT_Commands[method_request.name](method_request, device_client, credentials)
-            pass
+            #method_request = await device_client.receive_method_request()
+            #await _IoT_Commands[method_request.name](method_request, device_client, credentials)
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
             break
@@ -132,7 +134,7 @@ async def main_loop():
 async def main():
     global percent
     # Calibrate the proximity sensor
-    percent = calibratePSensor() 
+    percent = calibratePSensor()
 
     global device_client
     start_time = datetime.now()
@@ -147,9 +149,9 @@ def startup():
     asyncio.run(main())
     signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main_loop())
-    
 
-if __name__ == '__main__':  
+
+if __name__ == '__main__':
     log.info('Starting...')
     parser = argparse.ArgumentParser()
     parser.add_argument('--test', required=False)
@@ -160,9 +162,9 @@ if __name__ == '__main__':
 
     try:
         startup()
-    except SystemExit: 
+    except SystemExit:
         try:
             destroy()
-        finally: 
+        finally:
             sys.exit(0)
 
