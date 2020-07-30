@@ -116,4 +116,3 @@ class RCamera:
         return [file_name, file_path]
 
 
-
