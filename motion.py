@@ -102,16 +102,6 @@ async def no_movement_detected():
     log.info("No movement...")
     #red_led.off()
 
-#Clean up
-def destroy():
-    try:
-        tfclassifier = None
-        camera = None
-        GPIO.cleanup()  # Release GPIO resource
-    except Exception as e:
-        log.info(f"Exiting..")
-        sys.exit(0)
-
 #Main app loop.
 async def main_loop():
     global device_client
@@ -125,12 +115,11 @@ async def main_loop():
             proximity = vcnl.read_proximity()
             if proximity >= percent:
                 await movement_detected()
-            #method_request = await device_client.receive_method_request()
-            #await _IoT_Commands[method_request.name](method_request, device_client, credentials)
+            method_request = await device_client.receive_method_request()
+            await _IoT_Commands[method_request.name](method_request, device_client, credentials)
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
             break
-    destroy()
 
 async def main():
     global percent
@@ -141,14 +130,8 @@ async def main():
     start_time = datetime.now()
     log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
 
-#handles the CTRL-C signal
-def signal_handler(signal, frame):
-    destroy()
-    sys.exit(0)
-
 def startup():
     asyncio.run(main())
-    signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main_loop())
 
 
@@ -164,8 +147,5 @@ if __name__ == '__main__':
     try:
         startup()
     except SystemExit:
-        try:
-            destroy()
-        finally:
-            sys.exit(0)
+        sys.exit(0)
 
