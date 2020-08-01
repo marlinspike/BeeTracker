@@ -5,6 +5,8 @@ bin/
 *.log*
 *.tflite
 signature.json
+.vscode
+tf_models_lite
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
