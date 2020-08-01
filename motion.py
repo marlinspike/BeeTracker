@@ -71,7 +71,7 @@ def destroy():
         camera = None
         GPIO.cleanup()  # Release GPIO resource
     except Exception as e:
-        log.info(f"Exiting..")
+        #log.info(f"Exiting..")
         sys.exit(0)
 
 #Main app loop.
@@ -79,24 +79,25 @@ async def main_loop():
     global _IoT_Commands
     global device_client
 
-    device_client = await device_connect_service.connect_iotc_device()
-    move_sensor.when_motion = movement_detected
-    move_sensor.when_no_motion = no_movement_detected
+    try:
+        device_client = await device_connect_service.connect_iotc_device()
+        move_sensor.when_motion = movement_detected
+        move_sensor.when_no_motion = no_movement_detected
+    except Exception as e:
+        pass
+
     while True:
         try:
             method_request = await device_client.receive_method_request()
             await _IoT_Commands[method_request.name](method_request, device_client, credentials)
-            pass
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
-            break
-    destroy()
+            sys.exit(0)
+    try:
+        destroy()
+    except Exception as e:
+        pass
 
-
-async def main():
-    global device_client
-    start_time = datetime.now()
-    log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
 
 #handles the CTRL-C signal
 def signal_handler(signal, frame):
@@ -104,7 +105,6 @@ def signal_handler(signal, frame):
     sys.exit(0)
 
 def startup():
-    asyncio.run(main())
     signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main_loop())
     
