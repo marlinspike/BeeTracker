@@ -115,8 +115,8 @@ async def main_loop():
             proximity = vcnl.read_proximity()
             if proximity >= percent:
                 await movement_detected()
-            method_request = await device_client.receive_method_request()
-            await _IoT_Commands[method_request.name](method_request, device_client, credentials)
+            #method_request = await device_client.receive_method_request()
+            #await _IoT_Commands[method_request.name](method_request, device_client, credentials)
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
             break

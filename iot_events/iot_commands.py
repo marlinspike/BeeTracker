@@ -1,6 +1,6 @@
 from azure.iot.device import MethodResponse
 from azure.storage.blob import ContainerClient
-
+import asyncio
 import os, logging, app_logger
 log:logging.Logger = app_logger.get_logger()
 
@@ -9,6 +9,7 @@ async def iot_download_model(request, device_client, credentials):
     global log
     log.info("IoT Download Model called")
     response = MethodResponse.create_from_method_request(request, status=200)
+    asyncio.sleep(0)
     await device_client.send_method_response(response)  # send response
 
     # Setup blob service and container client for downloading from the blob storage
@@ -31,6 +32,7 @@ async def iot_upload_images(request, device_client, credentials):
     global log
     log.info("IoT Upload Images called")
     response = MethodResponse.create_from_method_request(request, status=200)
+    asyncio.sleep(0)
     await device_client.send_method_response(response)  # send response
 
     # Setup blob service and container client for downloading from the blob storage
@@ -55,4 +57,5 @@ async def iot_blink(request, device_client, credentials):
     global log
     log.info("IoT Blink called")
     response = MethodResponse.create_from_method_request(request, status=200)
+    asyncio.sleep(0)
     await device_client.send_method_response(response)  # send response
