@@ -16,6 +16,7 @@ from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
 
 #Define some globals
+GPIO.setmode(GPIO.BCM)
 move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
 red_led = LED(18)   #LED connected to GPIO pin 18
 camera = RCamera()  #Camera connected to camera pins
@@ -64,15 +65,6 @@ def no_movement_detected():
     log.info("No movement...")
     red_led.off()
     
-#Clean up
-def destroy():
-    try:
-        tfclassifier = None
-        camera = None
-        GPIO.cleanup()  # Release GPIO resource
-    except Exception as e:
-        #log.info(f"Exiting..")
-        sys.exit(0)
 
 #Main app loop.
 async def main_loop():
@@ -90,8 +82,12 @@ async def main_loop():
         try:
             method_request = await device_client.receive_method_request()
             await _IoT_Commands[method_request.name](method_request, device_client, credentials)
+        except KeyboardInterrupt as kbi:
+            GPIO.cleanup()
+            sys.exit(0)           
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
+            GPIO.cleanup()
             sys.exit(0)
     try:
         destroy()
@@ -99,16 +95,9 @@ async def main_loop():
         pass
 
 
-#handles the CTRL-C signal
-def signal_handler(signal, frame):
-    destroy()
-    sys.exit(0)
-
 def startup():
-    signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main_loop())
     
-
 if __name__ == '__main__':  
     log.info('Starting...')
     parser = argparse.ArgumentParser()
@@ -123,7 +112,8 @@ if __name__ == '__main__':
     except SystemExit: 
         try:
             destroy()
-        finally: 
+        finally:
+            GPIO.cleanup()
             sys.exit(0)
 
 
