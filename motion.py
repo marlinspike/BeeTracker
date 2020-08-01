@@ -89,10 +89,6 @@ async def main_loop():
             log.error("Exception in main_loop: {e}")
             GPIO.cleanup()
             sys.exit(0)
-    try:
-        destroy()
-    except Exception as e:
-        pass
 
 
 def startup():
@@ -109,12 +105,11 @@ if __name__ == '__main__':
 
     try:
         startup()
-    except SystemExit: 
-        try:
-            destroy()
-        finally:
-            GPIO.cleanup()
-            sys.exit(0)
+    except SystemExit:
+        pass
+    finally:
+        GPIO.cleanup()
+        sys.exit(0)
 
 
 
