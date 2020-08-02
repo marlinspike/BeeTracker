@@ -30,9 +30,8 @@ log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
-# Proxmity Sensor i2c
-i2c = busio.I2C(board.SCL, board.SDA)
-sensor = adafruit_vcnl4010.VCNL4010(i2c)
+
+
 # List for calibration
 motionSense=[]
 percent = None
