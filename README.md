@@ -22,7 +22,7 @@ The following wiring is required:
 - Motion Sensor at GPIO 17
 - Raspberry Pi Camera connected to the camera port
 
-![alt text](https://raw.githubusercontent.com/marlinspike/beetracker/master/img/Raspberry_Pi_board_wiring.jpg)
+![alt text](https://raw.githubusercontent.com/marlinspike/beetracker/master/Raspberry_Pi_board_wiring.jpg)
 
 ### Configuring the Credentials file (creds.json)
 This app needs a **creds.json** file to store certain required credential and status info. It's not contained in the repo for obvious reasons, but here's the structure you'll need:
