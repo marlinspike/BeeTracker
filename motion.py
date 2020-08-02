@@ -14,7 +14,6 @@ from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
-import adafruit_vcnl4010
 import time
 import busio
 import board
@@ -35,9 +34,8 @@ log:logging.Logger = app_logger.get_logger()
 #print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _USE_TEST_MODE = False
-# Proxmity Sensor i2c
-i2c = busio.I2C(board.SCL, board.SDA)
-sensor = adafruit_vcnl4010.VCNL4010(i2c)
+
+
 # List for calibration
 motionSense=[]
 percent = None
@@ -59,8 +57,7 @@ async def send_iot_message(message=""):
 def calibratePSensor():
     print("Calibrating Proximity Sensor...")
     for i in range (3):
-        proximity = sensor.proximity
-        #proximity = vcnl.read_proximity()
+        proximity = vcnl.read_proximity()
         print("Proximity: {0}".format(proximity))
         motionSense.append(proximity)
         time.sleep(1)
