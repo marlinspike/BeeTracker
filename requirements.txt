@@ -110,7 +110,7 @@ soupsieve==1.8
 spidev==3.4
 ssh-import-id==5.7
 tensorboard==1.13.1
-tensorflow==1.13.1
+tensorflow==1.15.4
 tensorflow-estimator==1.14.0
 termcolor==1.1.0
 tflite-runtime==2.1.0.post1
