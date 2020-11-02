@@ -31,6 +31,9 @@ _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
 
+#Proximity Sensor
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_vcnl4010.VCNL4010(i2c)
 
 # List for calibration
 motionSense=[]
@@ -63,7 +66,8 @@ async def send_iot_message(message=""):
 def calibratePSensor(vcnl):
     print("Calibrating Proximity Sensor...")
     for i in range (3):
-        proximity = vcnl.read_proximity()
+        proximity = sensor.proximity
+	#proximity = vcnl.read_proximity()
         print("Proximity: {0}".format(proximity))
         motionSense.append(proximity)
         time.sleep(1)
@@ -107,6 +111,19 @@ async def movement_detected():
 async def no_movement_detected():
     log.info("No movement...")
     red_led.off()
+
+
+#Clean up
+def destroy():
+    try:
+        tfclassifier = None
+        camera = None
+        #GPIO.cleanup()  # Release GPIO resource
+    except Exception as e:
+        log.info(f"Exiting..")
+        sys.exit(0)
+
+
 
 #Main app loop.
 async def main_loop():
@@ -196,4 +213,3 @@ if __name__ == '__main__':
     finally:
         GPIO.cleanup()
         sys.exit(0)
-
