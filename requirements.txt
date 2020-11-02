@@ -1,4 +1,5 @@
 absl-py==0.9.0
+#adafruit-blinka==5.5.4
 asn1crypto==0.24.0
 astor==0.8.1
 astroid==2.1.0

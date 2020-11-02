@@ -14,6 +14,7 @@ from iotc.aio import IoTCClient
 from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
+import adafruit_vcnl4010
 import time
 import busio
 import board
@@ -35,6 +36,9 @@ log:logging.Logger = app_logger.get_logger()
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _USE_TEST_MODE = False
 
+#Proximity Sensor
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_vcnl4010.VCNL4010(i2c)
 
 # List for calibration
 motionSense=[]
@@ -57,7 +61,8 @@ async def send_iot_message(message=""):
 def calibratePSensor():
     print("Calibrating Proximity Sensor...")
     for i in range (3):
-        proximity = vcnl.read_proximity()
+        proximity = sensor.proximity
+	#proximity = vcnl.read_proximity()
         print("Proximity: {0}".format(proximity))
         motionSense.append(proximity)
         time.sleep(1)
@@ -85,6 +90,7 @@ async def movement_detected():
     log.info(f"Image Classification took {datetime.now() - start_time} seconds")
     #Only send telemetry if we see one of the classifications we care about; else, delete the photo
     valid_labels = _app_settings.get_TFLabels() # Labels classified
+    print (picture_classification)
     if ((picture_classification[0]['Prediction'] in valid_labels)): #["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
         #asyncio.run(send_iot_message(message))
@@ -98,6 +104,19 @@ async def movement_detected():
 async def no_movement_detected():
     log.info("No movement...")
     #red_led.off()
+
+
+#Clean up
+def destroy():
+    try:
+        tfclassifier = None
+        camera = None
+        #GPIO.cleanup()  # Release GPIO resource
+    except Exception as e:
+        log.info(f"Exiting..")
+        sys.exit(0)
+
+
 
 #Main app loop.
 async def main_loop():
@@ -117,6 +136,7 @@ async def main_loop():
         except Exception as e:  # Press ctrl-c to end the program.
             log.error("Exception in main_loop: {e}")
             break
+    destroy()
 
 async def main():
     global percent
@@ -127,8 +147,15 @@ async def main():
     start_time = datetime.now()
     log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
 
+
+#handles the CTRL-C signal
+def signal_handler(signal, frame):
+    destroy()
+    sys.exit(0)
+
 def startup():
     asyncio.run(main())
+    signal.signal(signal.SIGINT, signal_handler)
     asyncio.run(main_loop())
 
 
@@ -144,5 +171,8 @@ if __name__ == '__main__':
     try:
         startup()
     except SystemExit:
-        sys.exit(0)
+        try:
+            destroy()
+        finally:
+            sys.exit(0)
 
