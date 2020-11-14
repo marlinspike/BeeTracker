@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from utils import CredentialInfo
+import os
 
 class AppSettings:
     def __init__(self):
@@ -36,6 +37,14 @@ class AppSettings:
     def get_DateTime(self) -> str:
         return self.appsettings_dict["Date_Time"]
 
+    #Ensures that folders corresponding to the TFLabels exist in the "img" folder
+    def ensure_label_folders_exist(self):
+        for label in self.get_TFLabels():
+            label_path = os.path.join("img",label)
+            if not os.path.exists(label_path):
+                os.makedirs(label_path)
+    
+                
 
 if __name__ == '__main__':
     app = AppSettings()

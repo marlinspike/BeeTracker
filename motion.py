@@ -28,6 +28,7 @@ log:logging.Logger = app_logger.get_logger()
 #print(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
+_app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
 #These commands are sent by IoT Central to the device
 
@@ -45,7 +46,8 @@ def movement_detected():
     log.info("Movement Detected!")
     red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
-    picture_name = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id), _USE_TEST_MODE)
+    pic_info = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id), _USE_TEST_MODE)
+    picture_name = pic_info[1]
     tfclassifier.reset()
     tfclassifier.addImage(picture_name)
     start_time = datetime.now()
@@ -55,6 +57,8 @@ def movement_detected():
     valid_labels = _app_settings.get_TFLabels() # Labels classified
     if ((picture_classification[0]['Prediction'] in valid_labels)): #["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
+        os.rename(picture_name, os.path.join("img", picture_classification[0]['Prediction'].__str__(), pic_info[0]))
+        picture_name =  os.path.join("img", picture_classification[0]['Prediction'].__str__(), pic_info[0])
         asyncio.run(send_iot_message(message))
     if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
         if os.path.exists(picture_name):
@@ -65,7 +69,6 @@ def no_movement_detected():
     log.info("No movement...")
     red_led.off()
     
-
 #Main app loop.
 async def main_loop():
     global _IoT_Commands
@@ -84,8 +87,8 @@ async def main_loop():
             await _IoT_Commands[method_request.name](method_request, device_client, credentials)
         except KeyboardInterrupt as kbi:
             GPIO.cleanup()
-            sys.exit(0)           
-        except Exception as e:  # Press ctrl-c to end the program.
+            sys.exit(0)   
+        except Exception as e: 
             log.error("Exception in main_loop: {e}")
             GPIO.cleanup()
             sys.exit(0)
@@ -110,6 +113,3 @@ if __name__ == '__main__':
     finally:
         GPIO.cleanup()
         sys.exit(0)
-
-
-

@@ -100,18 +100,20 @@ class RCamera:
         #self.camera.capture("test.jpg")
 
     #Takes a photo and saves it to the path specified, with the device_id specified as a prefix
-    #Returns: Picture name
+    #Returns: Array: [file_name, file_path_and_name]
     #use_demo_pics: Set to TRUE and this will simply return a filepath to a random picture in the img_test folder
-    def take_picture(self, storage_location="", device_id="", use_demo_pics=False) -> str:
-        filepath = ""
+    def take_picture(self, storage_location="", device_id="", use_demo_pics=False) -> []:
+        file_path = ""
         if use_demo_pics:
             #"img/"
-            filepath = Path(f"img_test/{random.choice(self.get_demo_pics())}").__str__()
+            file_path = Path(f"img_test/{random.choice(self.get_demo_pics())}").__str__()
         else:
-            filepath = Path(f"{storage_location}{device_id}_{uuid.uuid4().__str__()}{'.jpg'}").__str__()
-            self.camera.capture(filepath)
+            file_name = f"{device_id}_{uuid.uuid4().__str__()}{'.jpg'}"
+            file_path = Path(f"{storage_location}{file_name}").__str__()
+            #filepath = Path(f"{storage_location}{device_id}_{uuid.uuid4().__str__()}{'.jpg'}").__str__()
+            self.camera.capture(file_path)
 
-        return filepath
+        return [file_name, file_path]
 
 
 

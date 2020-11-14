@@ -8,7 +8,13 @@ _app_settings = AppSettings()
 #model:ImageModel = ImageModel.load('~/code/bee/BeeCam/tf_models')
 #sig: Signature = Signature('/home/pi/code/bee/BeeCam/tf_models_lite')
 #model: ImageModel = ImageModel.load_from_signature(sig)
-model: ImageModel = ImageModel.load('./tf_models_lite')
+
+#model: ImageModel = ImageModel.load('./tf_models_lite')
+
+sig:Signature = Signature('./tf_models_lite/signature.json')
+model: ImageModel = ImageModel.load_from_signature(sig)
+#test_model: ImageModel = ImageModel.load_from_signature(Signature('./tf_models_lite/sig.json'))
+#model_not_a_bee: ImageModel = ImageModel.load()
 
 '''
 The TFClassify class (Tensor Flow Classifier), takes a TensorFlow model and allows you
