@@ -14,11 +14,11 @@ from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
+import busio, board, Adafruit_VCNL40xx
+import time
 
 #Define some globals
 GPIO.setmode(GPIO.BCM)
-move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
-red_led = LED(18)   #LED connected to GPIO pin 18
 camera = RCamera()  #Camera connected to camera pins
 credentials: Credentials = Credentials()
 device_client: IoTCClient = None #IoTHubDeviceClient.create_from_connection_string(credentials.get_credentail_info(CredentialInfo.connection_string))
@@ -30,8 +30,8 @@ log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
-#These commands are sent by IoT Central to the device
 
+#These commands are sent by IoT Central to the device
 _IoT_Commands = {
     'DownloadModel': iot_commands.iot_download_model,
     'UploadImages': iot_commands.iot_upload_images,
@@ -40,6 +40,23 @@ _IoT_Commands = {
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
+
+# Calibrate the proximity sensor
+def calibratePSensor(vcnl):
+    print("Calibrating Proximity Sensor...")
+    for i in range (3):
+        proximity = vcnl.read_proximity()
+        print("Proximity: {0}".format(proximity))
+        motionSense.append(proximity)
+        time.sleep(1)
+
+    avg = sum(motionSense) / len(motionSense)
+    print("Average Proximity: " + str(avg))
+    # Increase average proximity by 2% as "motion"
+    percent = avg + (avg * .02)
+    print("Plus 2%: " + str(percent))
+    return percent
+
 
 def movement_detected():
     global start_time, _USE_TEST_MODE
@@ -68,11 +85,12 @@ def movement_detected():
 def no_movement_detected():
     log.info("No movement...")
     red_led.off()
-    
+
 #Main app loop.
 async def main_loop():
     global _IoT_Commands
     global device_client
+    global percent, proximity
 
     try:
         device_client = await device_connect_service.connect_iotc_device()
@@ -85,10 +103,16 @@ async def main_loop():
         try:
             method_request = await device_client.receive_method_request()
             await _IoT_Commands[method_request.name](method_request, device_client, credentials)
+            if(args.sensor == 'vcnl4010'):
+                print("proximity: " + proximity)
+                proximity = vcnl.read_proximity()
+                if proximity >= percent:
+                    await movement_detected()
+
         except KeyboardInterrupt as kbi:
             GPIO.cleanup()
-            sys.exit(0)   
-        except Exception as e: 
+            sys.exit(0)
+        except Exception as e:
             log.error("Exception in main_loop: {e}")
             GPIO.cleanup()
             sys.exit(0)
@@ -96,15 +120,30 @@ async def main_loop():
 
 def startup():
     asyncio.run(main_loop())
-    
-if __name__ == '__main__':  
+
+if __name__ == '__main__':
+    # Welcome Message
+    print("**************************************************************************")
+    print("**  Welcome to Beetracker!                                              **")
+    print("**  Supported sensors: vcnl4010, vcnl4040, and motion                   **")
+    print("**************************************************************************")
     log.info('Starting...')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test', required=False)
+    parser.add_argument('--test', required=False, help="Enable test mode")
+    parser.add_argument('--sensor', required=False, action='store', dest='sensor', choices=['vcnl4010','vcnl4040', 'motion'], help="Select a Motion or Proximity Sensor")
     args = parser.parse_args()
     _USE_TEST_MODE = args.test
     if (_USE_TEST_MODE):
         log.info("Starting in TEST Mode")
+    if args.sensor == 'vcnl4010':
+            log.info("Calibrating VCNL4010 motion sensor")
+            motionSense = []
+            vcnl = Adafruit_VCNL40xx.VCNL4010()
+            percent = calibratePSensor(vcnl)
+    if args.sensor == 'motion':
+            log.info("Using Motion Sensor")
+            move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
+            red_led = LED(18)   #LED connected to GPIO pin 18
 
     try:
         startup()
