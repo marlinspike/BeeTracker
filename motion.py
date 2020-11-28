@@ -14,7 +14,8 @@ from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
-import busio, board, Adafruit_VCNL40xx, adafruit_vcnl4010
+#import busio, board, adafruit_vcnl4010
+import Adafruit_VCNL40xx
 import time
 
 #Define some globals
@@ -31,14 +32,10 @@ _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
 
-#Proximity Sensor
-i2c = busio.I2C(board.SCL, board.SDA)
-sensor = adafruit_vcnl4010.VCNL4010(i2c)
-
 # List for calibration
 motionSense=[]
 percent = None
-vcnl = Adafruit_VCNL40xx.VCNL4010()
+
 _app_settings = AppSettings()
 #These commands are sent by IoT Central to the device
 _IoT_Commands = {
@@ -46,11 +43,6 @@ _IoT_Commands = {
     'UploadImages': iot_commands.iot_upload_images,
     'Blink': iot_commands.iot_blink
 }
-
-
-i2c = busio.I2C(board.SCL, board.SDA)
-psensor = adafruit_vcnl4010.VCNL4010(i2c)
-
 
 #These commands are sent by IoT Central to the device
 _IoT_Commands = {
@@ -66,8 +58,7 @@ async def send_iot_message(message=""):
 def calibratePSensor(vcnl):
     print("Calibrating Proximity Sensor...")
     for i in range (3):
-        proximity = sensor.proximity
-	#proximity = vcnl.read_proximity()
+        proximity = vcnl.read_proximity()
         print("Proximity: {0}".format(proximity))
         motionSense.append(proximity)
         time.sleep(1)
@@ -103,15 +94,13 @@ async def movement_detected():
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
     if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
-        pass
-        #if os.path.exists(picture_name):
-            #os.remove(picture_name)
+        if os.path.exists(picture_name):
+            os.remove(picture_name)
 
 #No-movement detected method
 async def no_movement_detected():
     log.info("No movement...")
     red_led.off()
-
 
 #Clean up
 def destroy():
@@ -122,7 +111,6 @@ def destroy():
     except Exception as e:
         log.info(f"Exiting..")
         sys.exit(0)
-
 
 
 #Main app loop.
@@ -147,12 +135,11 @@ async def main_loop():
     while True:
         try:
             if(args.sensor == 'vcnl4010'):
-                proximity = psensor.proximity
-                #proximity = vcnl.read_proximity()
+                #proximity = psensor.proximity     #syntax when using the adafruit_vcnl4010 library
+                proximity = vcnl.read_proximity()  #syntax when using the Adafruit_VCNL40xx library
                 if proximity >= percent:
                     await movement_detected()
             else:
-                print("test")
                 method_request = await device_client.receive_method_request()
                 await _IoT_Commands[method_request.name](method_request, device_client, credentials)
         except KeyboardInterrupt as kbi:
@@ -166,9 +153,7 @@ async def main_loop():
             sys.exit(0)
 
 async def main():
-    #global percent
     global device_client
-    #percent = calibratePSensor()
     start_time = datetime.now()
     log.info(f"Ready! Starting took {datetime.now() - start_time} seconds")
 
