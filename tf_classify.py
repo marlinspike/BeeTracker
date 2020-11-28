@@ -29,24 +29,21 @@ class TFClassify:
     def __init__(self):
         self.images = []
         self.results = []
-    
 
     #Add a single image to the classifier
     def addImage(self, imagePath) -> int:
         self.images.append(imagePath)
         return len(self.images)
-    
 
     #Add an array of images to the classifier
     def addImages(self, imagePaths:[]) -> int:
         self.images = imagePaths
         return len(self.images)
 
-
     #Clears the image array
     def reset(self):
         self.images, self.results = [], []
-    
+
     def create_json_result(self, prediction, image_path, confidence="X"):
         calc_val = lambda prediction, item: 1 if prediction == item else 0
         valid_labels = _app_settings.get_TFLabels()
@@ -76,7 +73,7 @@ class TFClassify:
             result = self.create_json_result(predict, item, confidence)
             self.results.append(result)
         return self.results
-            
+
 
 
 if __name__ == '__main__':
