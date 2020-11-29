@@ -14,8 +14,9 @@ from iotc import IOTCConnectType, IOTCLogLevel, IOTCEvents
 import iot_events.device_events as device_events
 from app_settings import AppSettings
 import iot_events.iot_commands as iot_commands
-#import busio, board, adafruit_vcnl4010
-import Adafruit_VCNL40xx
+import busio, board       #needed for i2c interface with proximity sensors
+import adafruit_vcnl4040  #needed for the vcnl4040 proximity sensor
+import adafruit_vcnl4010  #needed for the vcnl4010 proximity sensor
 import time
 
 #Define some globals
@@ -31,10 +32,6 @@ log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
-
-# List for calibration
-motionSense=[]
-percent = None
 
 _app_settings = AppSettings()
 #These commands are sent by IoT Central to the device
@@ -57,8 +54,10 @@ async def send_iot_message(message=""):
 # Calibrate the proximity sensor
 def calibratePSensor(vcnl):
     print("Calibrating Proximity Sensor...")
+    percent = None
+    motionSense=[]
     for i in range (3):
-        proximity = vcnl.read_proximity()
+        proximity = vcnl.proximity
         print("Proximity: {0}".format(proximity))
         motionSense.append(proximity)
         time.sleep(1)
@@ -107,7 +106,7 @@ def destroy():
     try:
         tfclassifier = None
         camera = None
-        #GPIO.cleanup()  # Release GPIO resource
+        GPIO.cleanup()  # Release GPIO resource
     except Exception as e:
         log.info(f"Exiting..")
         sys.exit(0)
@@ -131,12 +130,10 @@ async def main_loop():
         pass
 
     print("Ready to detect motion...")
-
     while True:
         try:
-            if(args.sensor == 'vcnl4010'):
-                #proximity = psensor.proximity     #syntax when using the adafruit_vcnl4010 library
-                proximity = vcnl.read_proximity()  #syntax when using the Adafruit_VCNL40xx library
+            if(args.sensor == 'vcnl4010' or args.sensor == 'vcnl4040'):
+                proximity = vcnl.proximity
                 if proximity >= percent:
                     await movement_detected()
             else:
@@ -184,8 +181,13 @@ if __name__ == '__main__':
         log.info("Starting in TEST Mode")
     if args.sensor == 'vcnl4010':
             log.info("Calibrating VCNL4010 motion sensor")
-            motionSense = []
-            vcnl = Adafruit_VCNL40xx.VCNL4010()
+            i2c = busio.I2C(board.SCL, board.SDA)
+            vcnl = adafruit_vcnl4010.VCNL4010(i2c)
+            percent = calibratePSensor(vcnl)
+    if args.sensor == 'vcnl4040':
+            log.info("Calibrating VCNL4040 motion sensor")
+            i2c = busio.I2C(board.SCL, board.SDA)
+            vcnl = adafruit_vcnl4040.VCNL4040(i2c)
             percent = calibratePSensor(vcnl)
     if args.sensor == 'motion':
             log.info("Using Motion Sensor")
