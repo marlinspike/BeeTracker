@@ -90,8 +90,8 @@ async def movement_detected():
     #print(picture_classification)
     if ((picture_classification[0]['Prediction'] in valid_labels)): #See appsettings.json ["Honeybee", "Invader", "Male Bee"]):
         message = f"{picture_classification[0]}"
-        os.rename(picture_name, os.path.join("img", picture_classification[0]['Prediction'].__str__(), pic_info[0]))
-        picture_name =  os.path.join("img", picture_classification[0]['Prediction'].__str__(), pic_info[0])
+        os.rename(picture_name, os.path.join("img", picture_classification[0]['Prediction'].__str__(), picture_classification[0]['Prediction'] + "_" + pic_info[0])) 
+        picture_name =  os.path.join("img", picture_classification[0]['Prediction'].__str__(),picture_classification[0]['Prediction'] + "_" + pic_info[0])
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
     if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
