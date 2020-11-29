@@ -76,7 +76,9 @@ async def movement_detected():
     if args.sensor == 'motion':
         red_led.on()
     # Take a picture and save it to the folder specified; "" for current folder
+    flash_led.on()
     pic_info = camera.take_picture("img/", credentials.get_credentail_info(CredentialInfo.device_id), _USE_TEST_MODE)
+    flash_led.off()
     picture_name = pic_info[1]
     tfclassifier.reset()
     tfclassifier.addImage(picture_name)
@@ -184,11 +186,13 @@ if __name__ == '__main__':
             i2c = busio.I2C(board.SCL, board.SDA)
             vcnl = adafruit_vcnl4010.VCNL4010(i2c)
             percent = calibratePSensor(vcnl)
+            flash_led = LED(23)   #LED connected on GPIO pin 23
     if args.sensor == 'vcnl4040':
             log.info("Calibrating VCNL4040 motion sensor")
             i2c = busio.I2C(board.SCL, board.SDA)
             vcnl = adafruit_vcnl4040.VCNL4040(i2c)
             percent = calibratePSensor(vcnl)
+            flash_led = LED(23)   #LED connected on GPIO pin 23
     if args.sensor == 'motion':
             log.info("Using Motion Sensor")
             move_sensor = MotionSensor(17)  #Motion Sensor control connected to GPIO pin 17
