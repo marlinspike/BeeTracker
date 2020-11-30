@@ -18,6 +18,7 @@ import busio, board       #needed for i2c interface with proximity sensors
 import adafruit_vcnl4040  #needed for the vcnl4040 proximity sensor
 import adafruit_vcnl4010  #needed for the vcnl4010 proximity sensor
 import time
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 #Define some globals
 GPIO.setmode(GPIO.BCM)
@@ -32,6 +33,7 @@ log.info(f"TensorFlow took {datetime.now() - start_time} seconds to load")
 _app_settings = AppSettings()
 _app_settings.ensure_label_folders_exist()
 _USE_TEST_MODE = False
+_USE_BLOB_STORGE = False
 
 _app_settings = AppSettings()
 #These commands are sent by IoT Central to the device
@@ -50,6 +52,38 @@ _IoT_Commands = {
 
 async def send_iot_message(message=""):
     await device_events.send_iot_message(device_client, message)
+
+# Connect to storage acccount
+def connect_storage_account():
+    global tier1_container
+    global blob_service_client
+    with open("./blob_config.json") as json_data_file:
+        data = json.load(json_data_file)
+        connection_str = data["blob"]["connection_string"]
+        tier1_container = data["blob"]["tier1_container"]
+    try:
+        blob_service_client = BlobServiceClient.from_connection_string(connection_str)
+    except Exception as e:
+        log.error("Exception in get_storage_account_details(): {e}")
+        print("Exception in get_storage_account_details(): " + e)
+
+# Send image to Azure Storage Blob
+def upload_to_storage_account(blob_service_client, container_name, img_file):
+    try:
+        # Create a blob client using the local file name as the name for the blob
+        blob_client = blob_service_client.get_blob_client(container=container_name, blob=img_file)
+
+        print("\nUploading to Azure Storage as blob:\n\t" + img_file)
+
+        # Upload the created file
+        cwd = os.getcwd()
+        upload_file_path = cwd + "/" + img_file
+        with open(upload_file_path, "rb") as data:
+            blob_client.upload_blob(data)
+    except Exception as e:
+        log.error("Exception in upload_to_storage_account(): {e}")
+        print("Exception in upload_to_storage_account(): " + e)
+
 
 # Calibrate the proximity sensor
 def calibratePSensor(vcnl):
@@ -94,6 +128,10 @@ async def movement_detected():
         picture_name =  os.path.join("img", picture_classification[0]['Prediction'].__str__(),picture_classification[0]['Prediction'] + "_" + pic_info[0])
         #asyncio.run(send_iot_message(message))
         await send_iot_message(message)
+        if(_USE_BLOB_STORAGE):
+            container_name = tier1_container
+            #upload the image to Azure
+            upload_to_storage_account(blob_service_client, container_name, picture_name)
     if ((picture_classification[0]['Confidence'] > 0.60) and _USE_TEST_MODE == False):
         if os.path.exists(picture_name):
             os.remove(picture_name)
@@ -177,10 +215,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--test', required=False, help="Enable test mode")
     parser.add_argument('--sensor', required=False, action='store', dest='sensor', choices=['vcnl4010','vcnl4040', 'motion'], help="Select a Motion or Proximity Sensor")
+    parser.add_argument('--blobstorage', required=False, help="Enable blob storage")
     args = parser.parse_args()
     _USE_TEST_MODE = args.test
+    _USE_BLOB_STORAGE = args.blobstorage
     if (_USE_TEST_MODE):
         log.info("Starting in TEST Mode")
+    if (_USE_BLOB_STORAGE):
+        log.info("Blob Storage Enabled.")
+        connect_storage_account()
     if args.sensor == 'vcnl4010':
             log.info("Calibrating VCNL4010 motion sensor")
             i2c = busio.I2C(board.SCL, board.SDA)
