@@ -113,7 +113,7 @@ tensorboard==1.13.1
 tensorflow==1.13.1
 tensorflow-estimator==1.14.0
 termcolor==1.1.0
-tflite-runtime==2.1.0.post1
+tflite-runtime==2.7.0
 thonny==3.2.6
 toml==0.10.1
 touchphat==0.0.1
